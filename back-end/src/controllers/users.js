@@ -148,22 +148,23 @@ controller.login = async function(req, res) {
       // Se o usuário não for encontrado, retorna
       // HTTP 401: Unauthorized
       if(! user) return res.status(401).end()
- 
- 
-      // Usuário encontrado, vamos conferir a senha
-      // let passwordIsValid
-      // if(req.body?.username === 'admin' && req.body?.password === 'admin123') passwordIsValid = true
-      // else passwordIsValid = user.password === req.body?.password
+
  
  
       let passwordIsValid
+
       if(req.body?.username === 'admin' && req.body?.password === 'admin123') passwordIsValid = true
       else passwordIsValid = await argon2.verify(user.password, req.body?.password)
  
  
       // Se a senha estiver errada, retorna
       // HTTP 401: Unauthorized
-      if(! passwordIsValid) return res.status(401).end()
+      if(!passwordIsValid) return res.status(401).end()
+
+      // Eliminamos o campo "password" dos dados do usuário antes de incluí-lo
+      // no payload do token JWT
+      if(user.password) delete user.password
+ 
 
       // Usuário e senha OK, passamos ao procedimento de gerar o token
       const token = jwt.sign(
@@ -183,7 +184,7 @@ controller.login = async function(req, res) {
 
       // Retorna o token e o usuário autenticado com
       // HTTP 200: OK (implícito)
-      res.send({token, user})
+      res.send({user})
 
   }
   catch(error) {
@@ -199,5 +200,17 @@ controller.me = function(req, res) {
   // HTTP 200: OK (implícito)
   res.send(req?.authUser)
 }
+
+controller.logout = function(req, res) {
+  // Apaga no front-end o cookie que armazena o token de autorização
+  res.clearCookie(process.env.AUTH_COOKIE_NAME, {
+    path: '/',
+    secure: true,
+    sameSite: 'None'
+  })
+  // HTTP 204: No Content
+  res.status(204).end()
+ }
+ 
 
 export default controller
