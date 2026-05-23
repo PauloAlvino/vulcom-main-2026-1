@@ -23,6 +23,10 @@ app.use(cookieParser());
 
 /*********** ROTAS DA API **************/
 
+// Middleware de verificação do token de autorização
+import auth from './middleware/auth.js'
+app.use(auth)
+
 import carsRouter from "./routes/cars.js";
 app.use("/cars", carsRouter);
 
@@ -31,5 +35,6 @@ app.use("/customers", customersRouter);
 
 import usersRouter from "./routes/users.js";
 app.use("/users", usersRouter);
+
 
 export default app;
